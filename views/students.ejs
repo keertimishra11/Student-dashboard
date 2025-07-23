@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Students List</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #f8f9fa;
+      color: #444;
+    }
+    .table-hover tbody tr:hover {
+      background-color: #f5f9ff;
+      transition: 0.2s;
+    }
+    .card-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 20px;
+    }
+
+    /* ✅ Name & Email soft look */
+    .student-name {
+      color: #333;
+      font-weight: 500;
+    }
+    .student-email {
+      color: #007bff;
+      text-decoration: underline;
+      font-size: 0.95rem;
+    }
+
+    /* ✅ Soft pastel badge for course */
+    .course-badge {
+      background: #e7f3ff;
+      color: #276fbf;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body class="container mt-4">
+
+  <h2 class="text-center mb-4">📚 Student Management Dashboard</h2>
+
+  <div class="card-container">
+
+    <!-- ✅ SEARCH + RESET -->
+    <div class="d-flex justify-content-between mb-3">
+      <form class="d-flex" method="GET" action="/students-list">
+        <input type="text" name="search" class="form-control me-2" placeholder="Search by name or email" value="<%= search %>">
+        
+        <select name="course" class="form-select me-2">
+          <option value="">All Courses</option>
+          <option value="Math" <%= course === 'Math' ? 'selected' : '' %>>Math</option>
+          <option value="Science" <%= course === 'Science' ? 'selected' : '' %>>Science</option>
+          <option value="English" <%= course === 'English' ? 'selected' : '' %>>English</option>
+          <option value="Computer" <%= course === 'Computer' ? 'selected' : '' %>>Computer</option>
+          <option value="History" <%= course === 'History' ? 'selected' : '' %>>History</option>
+        </select>
+
+        <button class="btn btn-primary">🔍 Search</button>
+      </form>
+
+      <a href="/students-list" class="btn btn-secondary">🔄 Reset</a>
+    </div>
+
+    <!-- ✅ Add new student button -->
+    <div class="text-end mb-3">
+      <a href="/add-student-form" class="btn btn-success">➕ Add New Student</a>
+    </div>
+
+    <!-- ✅ SUCCESS ALERT -->
+    <% if (typeof msg !== 'undefined' && msg) { %>
+      <div id="success-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+        ✅ <%= msg %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <% } %>
+
+    <!-- ✅ Students Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+
+            <!-- ✅ Sortable Column -->
+            <th>
+              <a href="?sort=name&order=<%= sort === 'name' && order === 'asc' ? 'desc' : 'asc' %>&search=<%= search %>&course=<%= course %>">
+                Name <%= sort === 'name' ? (order === 'asc' ? '⬆' : '⬇') : '' %>
+              </a>
+            </th>
+
+            <th>Email</th>
+
+            <!-- ✅ Sortable Column -->
+            <th>
+              <a href="?sort=course&order=<%= sort === 'course' && order === 'asc' ? 'desc' : 'asc' %>&search=<%= search %>&course=<%= course %>">
+                Course <%= sort === 'course' ? (order === 'asc' ? '⬆' : '⬇') : '' %>
+              </a>
+            </th>
+
+            <!-- ✅ Sortable Column -->
+            <th>
+              <a href="?sort=marks&order=<%= sort === 'marks' && order === 'asc' ? 'desc' : 'asc' %>&search=<%= search %>&course=<%= course %>">
+                Marks <%= sort === 'marks' ? (order === 'asc' ? '⬆' : '⬇') : '' %>
+              </a>
+            </th>
+
+            <th>Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% students.forEach((student, index) => { %>
+            <tr>
+              <td><%= index + 1 %></td> 
+              <td class="student-name"><%= student.name %></td>
+              <td><span class="student-email"><%= student.email %></span></td>
+              <td>
+                <!-- ✅ Nice soft badge for Course -->
+                <span class="course-badge"><%= student.course %></span>
+              </td>
+              <td><%= student.marks %></td>
+              <td>
+                <a href="/edit/<%= student.id %>" class="btn btn-outline-warning btn-sm">✏ Edit</a>
+                <a href="/delete/<%= student.id %>" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure?')">🗑 Delete</a>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ✅ Pagination -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination justify-content-center mt-3">
+        <% if (currentPage > 1) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= currentPage - 1 %>&search=<%= search %>&course=<%= course %>&sort=<%= sort %>&order=<%= order %>">Previous</a>
+          </li>
+        <% } %>
+
+        <% for(let i=1; i<=totalPages; i++) { %>
+          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>&search=<%= search %>&course=<%= course %>&sort=<%= sort %>&order=<%= order %>"><%= i %></a>
+          </li>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+          <li class="page-item">
+            <a class="page-link" href="?page=<%= currentPage + 1 %>&search=<%= search %>&course=<%= course %>&sort=<%= sort %>&order=<%= order %>">Next</a>
+          </li>
+        <% } %>
+      </ul>
+    </nav>
+
+  </div>
+
+  <!-- ✅ Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- ✅ Auto-hide alert after 2s + clean URL -->
+  <script>
+    setTimeout(() => {
+      const alertBox = document.getElementById("success-alert");
+      if (alertBox) {
+        const bsAlert = new bootstrap.Alert(alertBox);
+        bsAlert.close();
+        if (window.history.replaceState) {
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState(null, "", cleanUrl);
+        }
+      }
+    }, 2000);
+  </script>
+<footer class="text-center mt-4 py-3" style="background: #f1f3f5; color: #555; font-size: 0.9rem; border-top: 1px solid #ddd;">
+  Created  by <strong>Keerti Mishra</strong>
+</footer>
+
+</body>
+</html>
